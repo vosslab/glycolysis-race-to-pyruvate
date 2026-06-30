@@ -16,4 +16,6 @@
 - Reworked the card face renderer into a playing-card layout with mirrored corner labels, centered glycolysis glyphs, compact pathway cards, and clearer selection/state styling.
 - Rewrote [README.md](../README.md) to a short overview plus a documentation map and a managed screenshot block, and embedded the two captured screenshots.
 - Trimmed [AGENTS.md](../AGENTS.md) to bare pointer paths and added the missing [docs/TYPESCRIPT_STYLE.md](TYPESCRIPT_STYLE.md) and [docs/PYTEST_STYLE.md](PYTEST_STYLE.md) references for this TypeScript repo.
+- Cleared the ESLint gate by removing two unnecessary type assertions in `src/main.ts` and `src/ui/events.ts` and an unused `once` import in the Playwright smoke test.
+- Ran Prettier across the source and tests so `./check_codebase.sh` passes all five checks (typecheck, typecheck:lint, lint, format:check, test:node).
 - Fixed `tsconfig.lint.json` TS18003 error by adding `src/**/*.ts` to its include list; the template-generated config only listed `tests/**/*.ts` and `tools/**/*.ts`, which matched zero files in this repo since those directories use `.mjs` not `.ts`; adding the `src/` glob gives the wider typecheck a real input set while keeping test/tool paths ready for future TypeScript additions.
