@@ -93,25 +93,26 @@ async function main() {
     await assertText(page, ".turn-label", "Round 1");
     await assertText(page, ".turn-meta", "Player 1 is active");
 
-    for (const name of ["Draw card", "Play meld", "Discard", "Pass device", "Next turn"]) {
+    for (const name of ["Draw card", "Play meld"]) {
       await assertVisible(page, `button:has-text("${name}")`, `${name} should be visible`);
     }
 
     await assertText(
       page,
       ".controls__hint",
-      "Draw a card, build a legal meld, then discard one card.",
+      "Choose one action: draw a card, or play a legal meld.",
     );
     await assertVisible(
       page,
-      'button[title="Draw one card from the draw pile."]',
-      "Draw tooltip should be present",
+      ".zone__head h2:has-text('Shared glycolysis pathway')",
+      "shared pathway zone",
     );
 
     const playerTwoPanel = page.locator(".player-panel").filter({ hasText: "Player 2" });
     assert.equal(await playerTwoPanel.getByText("Hand hidden").isVisible(), true);
     assert.equal(await playerTwoPanel.locator(".card").count(), 0);
 
+    // Selecting a single card and playing it is not a legal reaction.
     await page.locator(".player-panel--active .card").first().click();
     await page.getByRole("button", { name: "Play meld" }).click();
 
@@ -119,11 +120,6 @@ async function main() {
     assert.notEqual(feedbackClass, null);
     assert.match(feedbackClass, /feedback--illegal/);
     await assertText(page, ".feedback__title", "Illegal meld");
-    await assertText(
-      page,
-      ".feedback__message",
-      "Select at least two cards before playing a meld.",
-    );
   } finally {
     await page.close();
     await browser.close();

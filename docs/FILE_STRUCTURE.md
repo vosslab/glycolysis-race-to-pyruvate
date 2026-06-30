@@ -84,7 +84,8 @@ tests/
   `LICENSE.MIT.md`.
 - [docs/](.): architecture and structure
   ([CODE_ARCHITECTURE.md](CODE_ARCHITECTURE.md),
-  [FILE_STRUCTURE.md](FILE_STRUCTURE.md)), changelog
+  [FILE_STRUCTURE.md](FILE_STRUCTURE.md)), player rules
+  ([GAME_PLAY.md](GAME_PLAY.md)), changelog
   ([CHANGELOG.md](CHANGELOG.md)), style guides
   ([REPO_STYLE.md](REPO_STYLE.md), [PYTHON_STYLE.md](PYTHON_STYLE.md),
   [PYTEST_STYLE.md](PYTEST_STYLE.md), [MARKDOWN_STYLE.md](MARKDOWN_STYLE.md),

@@ -15,6 +15,7 @@ export interface CardView {
 export interface MeldView {
   id: string;
   title: string;
+  subtitle: string;
   cards: CardView[];
 }
 
@@ -33,22 +34,26 @@ export interface GameState {
   activePlayerId: PlayerId;
   players: [PlayerView, PlayerView];
   drawPileCount: number;
-  drawPileTop: CardView | null;
-  discardPile: CardView[];
+  // The single shared glycolysis tableau both players extend.
   pathway: MeldView[];
+  // Label of the current frontier product, or null when the tableau is empty.
+  frontierLabel: string | null;
   selectedCardIds: string[];
   feedbackTone: FeedbackTone;
   feedbackTitle: string;
   feedbackMessage: string;
   prompt: string;
+  // Winner name on a win, null on a stalemate (only meaningful when round_over).
   roundWinner: string | null;
+  roundOutcome: "won" | "stalemate" | null;
 }
 
 export interface GameActions {
   onDraw(): void;
   onToggleCard(cardId: string): void;
   onPlayMeld(): void;
-  onDiscard(): void;
-  onPassScreen(): void;
-  onNextTurn(): void;
+  // Forced pass, available only when the draw pile is empty.
+  onSkip(): void;
+  // Pass-screen reveal, and start-next-round when the round is over.
+  onAdvance(): void;
 }

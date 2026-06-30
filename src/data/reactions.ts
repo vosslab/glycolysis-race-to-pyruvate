@@ -1,4 +1,4 @@
-import type { CardTemplateId } from "./card_types";
+import type { CardTemplateId, MoleculeId } from "./card_types";
 
 export type ReactionCategory =
   "normal" | "atp_investment" | "gapdh_redox" | "atp_payoff" | "branch";
@@ -8,6 +8,11 @@ export interface ReactionSpec {
   name: string;
   category: ReactionCategory;
   cardTemplateIds: readonly CardTemplateId[];
+  // substrate is the molecule consumed at the start of this step; product is
+  // the molecule produced at the end. The shared-tableau rule extends the
+  // pathway only when a meld's substrate equals the current frontier product.
+  substrate: MoleculeId;
+  product: MoleculeId;
   notes: string;
   bonusPoints: number;
 }
@@ -18,6 +23,8 @@ export const REACTION_SPECS = [
     name: "Hexokinase",
     category: "atp_investment",
     cardTemplateIds: ["glucose", "hexokinase", "atp", "glucose_6_phosphate", "adp"],
+    substrate: "glucose",
+    product: "glucose_6_phosphate",
     notes: "ATP investment that opens glycolysis.",
     bonusPoints: 0,
   },
@@ -26,6 +33,8 @@ export const REACTION_SPECS = [
     name: "Phosphoglucose isomerase",
     category: "normal",
     cardTemplateIds: ["glucose_6_phosphate", "phosphoglucose_isomerase", "fructose_6_phosphate"],
+    substrate: "glucose_6_phosphate",
+    product: "fructose_6_phosphate",
     notes: "Simple isomerization step.",
     bonusPoints: 0,
   },
@@ -40,6 +49,8 @@ export const REACTION_SPECS = [
       "fructose_1_6_bisphosphate",
       "adp",
     ],
+    substrate: "fructose_6_phosphate",
+    product: "fructose_1_6_bisphosphate",
     notes: "Second ATP investment step.",
     bonusPoints: 0,
   },
@@ -48,6 +59,8 @@ export const REACTION_SPECS = [
     name: "Aldolase, basic GAP route",
     category: "normal",
     cardTemplateIds: ["fructose_1_6_bisphosphate", "aldolase", "glyceraldehyde_3_phosphate"],
+    substrate: "fructose_1_6_bisphosphate",
+    product: "glyceraldehyde_3_phosphate",
     notes: "Basic aldolase-to-GAP route.",
     bonusPoints: 0,
   },
@@ -62,20 +75,10 @@ export const REACTION_SPECS = [
       "triose_phosphate_isomerase",
       "glyceraldehyde_3_phosphate",
     ],
+    substrate: "fructose_1_6_bisphosphate",
+    product: "glyceraldehyde_3_phosphate",
     notes: "Bonus DHAP + TPI + GAP route.",
     bonusPoints: 2,
-  },
-  {
-    id: "triose_phosphate_isomerase",
-    name: "Triose phosphate isomerase",
-    category: "normal",
-    cardTemplateIds: [
-      "dihydroxyacetone_phosphate",
-      "triose_phosphate_isomerase",
-      "glyceraldehyde_3_phosphate",
-    ],
-    notes: "DHAP to GAP conversion.",
-    bonusPoints: 0,
   },
   {
     id: "glyceraldehyde_3_phosphate_dehydrogenase",
@@ -88,6 +91,8 @@ export const REACTION_SPECS = [
       "one_3_bisphosphoglycerate",
       "nadh",
     ],
+    substrate: "glyceraldehyde_3_phosphate",
+    product: "one_3_bisphosphoglycerate",
     notes: "Redox step that swaps NAD+ for NADH.",
     bonusPoints: 0,
   },
@@ -102,6 +107,8 @@ export const REACTION_SPECS = [
       "three_phosphoglycerate",
       "atp",
     ],
+    substrate: "one_3_bisphosphoglycerate",
+    product: "three_phosphoglycerate",
     notes: "First ATP payoff step.",
     bonusPoints: 0,
   },
@@ -110,6 +117,8 @@ export const REACTION_SPECS = [
     name: "Phosphoglycerate mutase",
     category: "normal",
     cardTemplateIds: ["three_phosphoglycerate", "phosphoglycerate_mutase", "two_phosphoglycerate"],
+    substrate: "three_phosphoglycerate",
+    product: "two_phosphoglycerate",
     notes: "Moves the phosphate group.",
     bonusPoints: 0,
   },
@@ -118,6 +127,8 @@ export const REACTION_SPECS = [
     name: "Enolase",
     category: "normal",
     cardTemplateIds: ["two_phosphoglycerate", "enolase", "phosphoenolpyruvate"],
+    substrate: "two_phosphoglycerate",
+    product: "phosphoenolpyruvate",
     notes: "Dehydration step that forms PEP.",
     bonusPoints: 0,
   },
@@ -126,6 +137,8 @@ export const REACTION_SPECS = [
     name: "Pyruvate kinase",
     category: "atp_payoff",
     cardTemplateIds: ["phosphoenolpyruvate", "pyruvate_kinase", "adp", "pyruvate", "atp"],
+    substrate: "phosphoenolpyruvate",
+    product: "pyruvate",
     notes: "Final ATP payoff step.",
     bonusPoints: 0,
   },

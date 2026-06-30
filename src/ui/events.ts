@@ -39,18 +39,13 @@ export function attachGameEvents(root: HTMLElement, actions: GameActions): () =>
       return;
     }
 
-    if (action === "discard") {
-      actions.onDiscard();
+    if (action === "skip") {
+      actions.onSkip();
       return;
     }
 
-    if (action === "pass-screen") {
-      actions.onPassScreen();
-      return;
-    }
-
-    if (action === "next-turn") {
-      actions.onNextTurn();
+    if (action === "advance") {
+      actions.onAdvance();
     }
   };
 

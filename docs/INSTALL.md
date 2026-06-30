@@ -50,10 +50,6 @@ format-check, and Node unit tests).
   the setup script; if it cannot, run `npm run setup` manually.
 - `package-lock.json missing` warning: the install is not reproducible until a
   lockfile is committed; the check still runs.
-- `tsconfig.lint.json` TS18003 "No inputs were found": the lint type-check
-  matches no `.ts` files under `tests/` or `tools/`. Seed a `.ts` file in
-  either tree or extend the include list, as noted in
-  [check_codebase.sh](../check_codebase.sh).
 
 ## Known gaps
 

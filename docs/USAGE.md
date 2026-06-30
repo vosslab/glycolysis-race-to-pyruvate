@@ -36,12 +36,17 @@ unit tests under `tests/`.
 ## Playing the game
 
 - The game is two-player local hot-seat in one browser tab.
-- On a turn, the active player can draw, build a meld, discard one card, then
-  pass the device.
+- Play in a window about 16:9 to 16:10 wide so the hands and shared pathway fit
+  on one screen.
+- On a turn, the active player takes one action: draw one card, or play one
+  legal meld onto the shared pathway. There is no discard.
 - The inactive player's hand stays hidden until the turn changes.
-- A legal meld must match a glycolysis reaction; emptying a hand ends the round.
+- A legal meld must match a glycolysis reaction and extend the end of the shared
+  pathway; the first player to empty their hand wins the round.
+- Append `?seed=<number>` to the URL for a reproducible deal (handy for sharing
+  a game or capturing screenshots).
 
-See [README.md](../README.md) for the full v1 rules.
+See [GAME_PLAY.md](GAME_PLAY.md) for the full rules and a sample turn.
 
 ## Inputs and outputs
 

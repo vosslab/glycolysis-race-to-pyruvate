@@ -8,7 +8,6 @@ import { createGameState, playMeld } from "../src/game/state.ts";
 function cardsForReaction(deck, reactionId) {
   const reaction = REACTION_SPECS.find((spec) => spec.id === reactionId);
   assert.notEqual(reaction, undefined, `Missing reaction ${reactionId}`);
-
   return reaction.cardTemplateIds.map((templateId) => {
     const card = deck.find((entry) => entry.templateId === templateId);
     assert.notEqual(card, undefined, `Missing card ${templateId}`);
@@ -20,24 +19,31 @@ function cardIds(cards) {
   return cards.map((card) => card.cardId);
 }
 
-test("meld scores accumulate across two real turns", () => {
+test("scores accumulate as the shared pathway extends in order", () => {
   const deck = createOrderedDeck();
-  const state = createGameState(42, 7);
-  const playerOneMeld = cardsForReaction(deck, "hexokinase");
-  const playerTwoMeld = cardsForReaction(deck, "aldolase_bonus");
+  let state = createGameState(7, 7);
 
-  state.players[0].hand = playerOneMeld.slice();
-  state.players[1].hand = playerTwoMeld.slice();
+  const hexokinase = cardsForReaction(deck, "hexokinase");
+  const isomerase = cardsForReaction(deck, "phosphoglucose_isomerase");
+  // Spare cards keep each hand non-empty so neither play wins the round.
+  const spareA = deck.find((card) => card.templateId === "pyruvate");
+  const spareB = deck.find((card) => card.templateId === "phosphoenolpyruvate");
+  assert.notEqual(spareA, undefined, "Missing spare card pyruvate");
+  assert.notEqual(spareB, undefined, "Missing spare card phosphoenolpyruvate");
+  state.players[0].hand = [...hexokinase, spareA];
+  state.players[1].hand = [...isomerase, spareB];
 
-  const firstResult = playMeld(state, cardIds(playerOneMeld));
-  assert.equal(firstResult.ok, true);
+  const first = playMeld(state, cardIds(hexokinase));
+  assert.equal(first.ok, true);
+  state = first.state;
+  assert.equal(state.frontier, "glucose_6_phosphate");
 
-  const secondState = firstResult.state;
-  const secondResult = playMeld(secondState, cardIds(playerTwoMeld));
-  assert.equal(secondResult.ok, true);
+  const second = playMeld(state, cardIds(isomerase));
+  assert.equal(second.ok, true);
+  state = second.state;
 
-  const finalState = secondResult.state;
-  assert.equal(finalState.players[0].score, 5);
-  assert.equal(finalState.players[1].score, 7);
-  assert.equal(finalState.players[0].score + finalState.players[1].score, 12);
+  assert.equal(state.frontier, "fructose_6_phosphate");
+  assert.equal(state.players[0].score, 5);
+  assert.equal(state.players[1].score, 3);
+  assert.equal(state.pathway.length, 2);
 });

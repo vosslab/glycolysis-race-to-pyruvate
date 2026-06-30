@@ -55,9 +55,18 @@ button:disabled {
 
 .app-shell {
 	display: grid;
-	gap: 16px;
-	max-width: 1440px;
+	gap: 14px;
+	max-width: 1560px;
 	margin: 0 auto;
+}
+
+/* Two-column play area keeps the board near a 16:9 to 16:10 browser shape:
+   the two hands sit on the left, the shared pathway and piles on the right. */
+.main-grid {
+	display: grid;
+	grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
+	gap: 14px;
+	align-items: start;
 }
 
 .topbar,
@@ -209,8 +218,8 @@ h1 {
 
 .board-grid {
 	display: grid;
-	grid-template-columns: repeat(2, minmax(0, 1fr));
-	gap: 16px;
+	grid-template-columns: 1fr;
+	gap: 14px;
 }
 
 .zone {
@@ -236,20 +245,15 @@ h1 {
 	color: var(--muted);
 }
 
-.pile-button,
-.pile-shell {
+.pile-button {
 	width: 100%;
 	border: 0;
 	padding: 0;
 	background: transparent;
 	text-align: left;
-}
-
-.pile-button {
 	display: block;
 }
 
-.pile__card,
 .pile__empty,
 .empty-state {
 	display: grid;
@@ -264,18 +268,20 @@ h1 {
 		rgb(11 20 31 / 0.55);
 }
 
-.pile__card {
-	border-left: 5px solid var(--card-accent);
+.pile__back {
+	min-height: 104px;
+	border-radius: var(--radius);
+	border: 1px solid var(--line);
+	background:
+		repeating-linear-gradient(45deg, rgb(255 255 255 / 0.05) 0 9px, transparent 9px 18px),
+		rgb(11 20 31 / 0.7);
 }
 
-.pile__title {
-	font-size: 0.98rem;
-	font-weight: 700;
-}
-
-.pile__subtitle {
-	color: var(--muted);
-	font-size: 0.85rem;
+.pathway__frontier {
+	margin-bottom: 10px;
+	font-size: 0.82rem;
+	font-weight: 600;
+	color: hsl(168deg 60% 60%);
 }
 
 .meld-stack {
@@ -297,6 +303,11 @@ h1 {
 	font-weight: 700;
 }
 
+.meld__subtitle {
+	color: var(--muted);
+	font-size: 0.78rem;
+}
+
 .meld__cards,
 .chip-row,
 .controls {
@@ -305,30 +316,12 @@ h1 {
 	gap: 10px;
 }
 
-.meld__card,
-.chip {
-	display: inline-flex;
-	align-items: center;
-	min-height: 34px;
-	padding: 0 10px;
-	border-radius: 999px;
-	border: 1px solid var(--line);
-	background: rgb(10 17 27 / 0.7);
-	font-size: 0.83rem;
-	font-weight: 700;
-}
-
-.chip--selected,
-.meld__card {
-	border-left: 4px solid var(--card-accent);
-}
-
 .card {
 	position: relative;
 	display: grid;
-	flex: 0 0 180px;
+	flex: 0 0 116px;
 	align-content: stretch;
-	width: 180px;
+	width: 116px;
 	min-width: 0;
 	aspect-ratio: 5 / 7;
 	padding: 10px;
@@ -508,8 +501,7 @@ h1 {
 	font-size: 0.58rem;
 }
 
-.pile-button > .card,
-.pile-shell > .card {
+.pile-button > .card {
 	margin-inline: auto;
 }
 
@@ -638,6 +630,12 @@ h1 {
 	font-size: 0.84rem;
 	font-weight: 700;
 	color: var(--muted);
+}
+
+@media (max-width: 1100px) {
+	.main-grid {
+		grid-template-columns: 1fr;
+	}
 }
 
 @media (max-width: 900px) {

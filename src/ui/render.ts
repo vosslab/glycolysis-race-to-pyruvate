@@ -51,7 +51,10 @@ function faceMetaForCard(card: CardView): CardFaceMeta {
       "Phosphofructokinase-1": "PFK-1",
       Aldolase: "ALD",
       "Triose phosphate isomerase": "TPI",
+      // Both the short and full enzyme names map to GAPDH so the abbreviation
+      // resolves whether a card carries the mock short name or the data name.
       GAPDH: "GAPDH",
+      "Glyceraldehyde-3-phosphate dehydrogenase": "GAPDH",
       "Phosphoglycerate kinase": "PGK",
       "Phosphoglycerate mutase": "PGM",
       Enolase: "ENO",
@@ -92,12 +95,8 @@ function getPlayer(state: GameState, playerId: PlayerId): PlayerView {
   return player;
 }
 
-function getCardFaceMeta(card: CardView): CardFaceMeta {
-  return faceMetaForCard(card);
-}
-
 function renderCardFace(card: CardView, options: CardFaceOptions): string {
-  const face = getCardFaceMeta(card);
+  const face = faceMetaForCard(card);
   const classes = [`card`, `card--${options.variant}`, `card--${face.role}`];
   if (options.selected) {
     classes.push("card--selected");
@@ -171,6 +170,7 @@ function renderMeld(meld: MeldView): string {
   return `
 		<div class="meld">
 			<div class="meld__title">${escapeHtml(meld.title)}</div>
+			<div class="meld__subtitle">${escapeHtml(meld.subtitle)}</div>
 			<div class="meld__cards">${cards}</div>
 		</div>
 	`;
@@ -181,10 +181,13 @@ function renderPlayerPanel(state: GameState, player: PlayerView): string {
   const activeClass = isActive ? " player-panel--active" : "";
   const handSize = player.hand.length;
   const selectedCardSet = new Set(state.selectedCardIds);
-  const handCards = isActive
+  // Reveal a hand only on a live active turn. During the pass screen and round
+  // end both hands stay hidden so the hot-seat handoff never leaks cards.
+  const showHand = isActive && state.phase === "active_turn";
+  const handCards = showHand
     ? player.hand.map((card) => renderCard(card, selectedCardSet.has(card.id))).join("")
     : `<div class="player-panel__hidden-hand">Hand hidden</div>`;
-  const handSummary = isActive ? "Your hand" : "Face-down hand";
+  const handSummary = showHand ? "Your hand" : "Face-down hand";
 
   return `
 		<article class="player-panel${activeClass}">
@@ -233,11 +236,11 @@ function renderSelected(state: GameState): string {
 }
 
 function renderDrawPile(state: GameState): string {
-  const topCard = state.drawPileTop;
-  const topCardMarkup =
-    topCard === null
-      ? '<div class="pile__empty">No cards left</div>'
-      : renderCardFace(topCard, { variant: "compact" });
+  const canDraw = state.phase === "active_turn" && state.drawPileCount > 0;
+  const faceMarkup =
+    state.drawPileCount > 0
+      ? '<div class="pile__back" aria-hidden="true"></div>'
+      : '<div class="pile__empty">No cards left</div>';
 
   return `
 		<section class="zone">
@@ -245,29 +248,9 @@ function renderDrawPile(state: GameState): string {
 				<h2>Draw pile</h2>
 				<span class="pill">${state.drawPileCount}</span>
 			</div>
-			<button class="pile-button" type="button" data-action="draw" ${state.phase !== "active_turn" || state.drawPileCount === 0 ? "disabled" : ""}>
-				${topCardMarkup}
+			<button class="pile-button" type="button" data-action="draw" ${canDraw ? "" : "disabled"}>
+				${faceMarkup}
 			</button>
-		</section>
-	`;
-}
-
-function renderDiscardPile(state: GameState): string {
-  const topCard = state.discardPile[state.discardPile.length - 1];
-  const topCardMarkup =
-    topCard === undefined
-      ? '<div class="pile__empty">Discard pile is empty</div>'
-      : renderCardFace(topCard, { variant: "compact", used: true });
-
-  return `
-		<section class="zone">
-			<div class="zone__head">
-				<h2>Discard pile</h2>
-				<span class="pill">${state.discardPile.length}</span>
-			</div>
-			<div class="pile-shell">
-				${topCardMarkup}
-			</div>
 		</section>
 	`;
 }
@@ -276,14 +259,19 @@ function renderPathway(state: GameState): string {
   const melds =
     state.pathway.length > 0
       ? state.pathway.map((meld) => renderMeld(meld)).join("")
-      : '<div class="empty-state">Played pathway will appear here.</div>';
+      : '<div class="empty-state">Play Glucose + Hexokinase to start the pathway.</div>';
+  const frontier =
+    state.frontierLabel === null
+      ? "Pathway start"
+      : `Next step builds from ${escapeHtml(state.frontierLabel)}`;
 
   return `
 		<section class="zone zone--wide">
 			<div class="zone__head">
-				<h2>Played pathway</h2>
+				<h2>Shared glycolysis pathway</h2>
 				<span class="pill">${state.pathway.length} meld${state.pathway.length === 1 ? "" : "s"}</span>
 			</div>
+			<div class="pathway__frontier">${frontier}</div>
 			<div class="meld-stack">
 				${melds}
 			</div>
@@ -322,42 +310,49 @@ function renderControlButton(
 }
 
 function renderControls(state: GameState): string {
-  const canAct = state.phase === "active_turn";
-  const canAdvance = state.phase === "pass_screen" || state.phase === "round_over";
-  const drawTitle = canAct
-    ? "Draw one card from the draw pile."
-    : "Draw is available only during an active turn.";
-  const playTitle = canAct
-    ? "Play the selected cards as a legal glycolysis meld."
-    : "Play melds only during an active turn.";
-  const discardTitle = canAct
-    ? "Select one card, then discard it to end your turn."
-    : "Discard is available only during an active turn.";
-  const passTitle = canAct
-    ? "Hide the hand and hand the device to the other player."
-    : "Pass screen is available only during an active turn.";
-  const nextTurnLabel = state.phase === "round_over" ? "Start next round" : "Next turn";
-  const nextTurnTitle =
-    state.phase === "round_over"
-      ? "Reset the table and start a new round."
-      : "Advance to the next player's turn.";
-  const controlsHint =
-    state.phase === "active_turn"
-      ? "Draw a card, build a legal meld, then discard one card."
-      : state.phase === "pass_screen"
-        ? "Pass the device, then advance the turn."
-        : "The round is over. Start the next round when ready.";
+  // Pass screen: a single reveal button hands the device to the next player.
+  if (state.phase === "pass_screen") {
+    return `
+		<section class="controls">
+			<div class="controls__hint">Pass the device, then reveal the next hand.</div>
+			<div class="controls__group controls__group--secondary">
+				${renderControlButton("Reveal hand", "advance", "Reveal the next player's hand.", false, "control-button control-button--secondary")}
+			</div>
+		</section>
+	`;
+  }
+
+  // Round over: start the next round.
+  if (state.phase === "round_over") {
+    return `
+		<section class="controls">
+			<div class="controls__hint">The round is over. Start the next round when ready.</div>
+			<div class="controls__group controls__group--secondary">
+				${renderControlButton("Start next round", "advance", "Reset the tableau and start a new round.", false, "control-button control-button--secondary")}
+			</div>
+		</section>
+	`;
+  }
+
+  // Active turn: draw exactly one card OR play one legal meld. A forced pass
+  // appears only when the draw pile is empty.
+  const drawEmpty = state.drawPileCount === 0;
+  const drawTitle = drawEmpty
+    ? "The draw pile is empty. Play a meld or pass."
+    : "Draw one card. This ends your turn.";
+  const playTitle = "Play the selected cards as a legal glycolysis meld. This ends your turn.";
+  const skipTitle = "No legal move. Pass the turn to the other player.";
+  const skipButton = drawEmpty
+    ? renderControlButton("Pass turn", "skip", skipTitle, false, "control-button")
+    : "";
+
   return `
 		<section class="controls">
-			<div class="controls__hint">${escapeHtml(controlsHint)}</div>
+			<div class="controls__hint">Choose one action: draw a card, or play a legal meld.</div>
 			<div class="controls__group">
-				${renderControlButton("Draw card", "draw", drawTitle, !canAct, "control-button control-button--primary")}
-				${renderControlButton("Play meld", "play-meld", playTitle, !canAct, "control-button")}
-				${renderControlButton("Discard", "discard", discardTitle, !canAct, "control-button")}
-			</div>
-			<div class="controls__group controls__group--secondary">
-				${renderControlButton("Pass device", "pass-screen", passTitle, !canAct, "control-button")}
-				${renderControlButton(nextTurnLabel, "next-turn", nextTurnTitle, !canAdvance, "control-button control-button--secondary")}
+				${renderControlButton("Draw card", "draw", drawTitle, drawEmpty, "control-button control-button--primary")}
+				${renderControlButton("Play meld", "play-meld", playTitle, false, "control-button")}
+				${skipButton}
 			</div>
 		</section>
 	`;
@@ -368,13 +363,21 @@ function renderPhaseBanner(state: GameState): string {
     return "";
   }
 
-  const title = state.phase === "pass_screen" ? "Pass the device" : "Round over";
-  const detail =
-    state.phase === "pass_screen"
-      ? state.prompt
-      : state.roundWinner === null
+  let title: string;
+  let detail: string;
+  if (state.phase === "pass_screen") {
+    title = "Pass the device";
+    detail = state.prompt;
+  } else if (state.roundOutcome === "stalemate") {
+    title = "Stalemate";
+    detail = "The draw pile is empty and neither player can extend the pathway.";
+  } else {
+    title = "Round over";
+    detail =
+      state.roundWinner === null
         ? "The round is finished."
-        : `${state.roundWinner} cleared the lane first.`;
+        : `${state.roundWinner} emptied their hand first.`;
+  }
 
   return `
 		<section class="phase-banner phase-banner--${state.phase}">
@@ -412,17 +415,18 @@ export function renderGame(root: HTMLElement, state: GameState): void {
 
 			${renderControls(state)}
 
-			<section class="players-grid" aria-label="Players">
-				${playerOnePanel}
-				${playerTwoPanel}
-			</section>
+			<div class="main-grid">
+				<section class="players-grid" aria-label="Players">
+					${playerOnePanel}
+					${playerTwoPanel}
+				</section>
 
-			<section class="board-grid">
-				${renderDrawPile(state)}
-				${renderDiscardPile(state)}
-				${renderPathway(state)}
-				${renderSelected(state)}
-			</section>
+				<section class="board-grid">
+					${renderDrawPile(state)}
+					${renderPathway(state)}
+					${renderSelected(state)}
+				</section>
+			</div>
 
 			${renderFeedback(state)}
 		</div>

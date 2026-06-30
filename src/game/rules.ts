@@ -1,7 +1,17 @@
 import type { CardInstance, CardTemplateId } from "../data/card_types";
-import { cardLabel } from "../data/cards";
+import { CARD_DEFINITIONS } from "../data/cards";
 import { REACTION_SPECS } from "../data/reactions";
 import type { ReactionSpec } from "../data/reactions";
+
+// Friendly display name for each card template, so rejection messages read
+// "Glucose-6-phosphate, ADP" rather than the raw template ids.
+const CARD_NAME_BY_TEMPLATE = new Map<string, string>(
+  CARD_DEFINITIONS.map((definition) => [definition.id, definition.name]),
+);
+
+function displayName(templateId: string): string {
+  return CARD_NAME_BY_TEMPLATE.get(templateId) ?? templateId;
+}
 
 export interface MeldMatchResult {
   ok: true;
@@ -64,7 +74,7 @@ function compareCounts(
 }
 
 function renderTemplateIds(templateIds: readonly CardTemplateId[]): string {
-  return templateIds.join(", ");
+  return templateIds.map(displayName).join(", ");
 }
 
 function buildMismatchMessage(cards: readonly CardInstance[]): MeldMismatchResult {
@@ -103,10 +113,10 @@ function buildMismatchMessage(cards: readonly CardInstance[]): MeldMismatchResul
 
   const issues: string[] = [];
   if (closestMissing.length > 0) {
-    issues.push(`Missing cards: ${closestMissing.join(", ")}.`);
+    issues.push(`Missing cards: ${closestMissing.map(displayName).join(", ")}.`);
   }
   if (closestExtra.length > 0) {
-    issues.push(`Extra cards: ${closestExtra.join(", ")}.`);
+    issues.push(`Extra cards: ${closestExtra.map(displayName).join(", ")}.`);
   }
 
   return {
@@ -136,17 +146,4 @@ export function validateMeld(cards: readonly CardInstance[]): MeldValidationResu
   }
 
   return buildMismatchMessage(cards);
-}
-
-export function describeMeld(cards: readonly CardInstance[]): string {
-  if (cards.length === 0) {
-    return "No cards selected.";
-  }
-
-  const labels: string[] = [];
-  for (const card of cards) {
-    labels.push(cardLabel(card));
-  }
-
-  return labels.join(" + ");
 }

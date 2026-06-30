@@ -7,9 +7,11 @@ The game runs entirely in the browser from a static build. It needs no backend, 
 ## Screenshots
 
 <!-- screenshots:begin (managed by screenshot-docs) -->
-![Active turn showing both player areas, the draw and discard piles, and the played pathway](docs/screenshots/main_table.png)
+![A two-meld shared glycolysis pathway after Hexokinase and Phosphoglucose isomerase, with both player scores and the frontier pointing to Fructose-6-phosphate](docs/screenshots/main_table.png)
 
-![Pass-the-device handoff screen with the next player's hand hidden](docs/screenshots/pass_device.png)
+![Mid-turn meld building with the five Hexokinase cards selected from the active hand and listed in the Selected cards zone](docs/screenshots/meld_building.png)
+
+![Pass-the-device handoff screen with both hands hidden and the Hexokinase meld on the shared pathway](docs/screenshots/pass_device.png)
 <!-- screenshots:end -->
 
 ## Quick start
@@ -24,20 +26,25 @@ Each `npm run` task mirrors a front-door shell script; see
 ## v1 rules
 
 - Two-player local hot-seat in one browser tab; no backend or network.
-- On a turn, the active player can draw, play a meld, discard one card, then
-  pass the device.
-- The inactive player's hand stays hidden until the turn changes.
+- Play in a window about 16:9 to 16:10 wide so hands and the pathway fit on one
+  screen.
+- On a turn, the active player takes exactly one action: draw one card, or play
+  one legal meld. There is no discard.
+- Both players extend one shared, ordered glycolysis pathway, adding melds only
+  at the end. The first meld must start with Glucose.
 - A legal meld must match a glycolysis reaction exactly, including the required
   ATP, ADP, NAD+, and NADH cofactors.
 - The reaction set covers normal steps, ATP investment, GAPDH redox, ATP
   payoff, and the aldolase branch through DHAP plus TPI.
-- Emptying a hand ends the round; the next round resets hands and the starting
-  player.
+- The first player to empty their hand wins the round. Full rules are in
+  [docs/GAME_PLAY.md](docs/GAME_PLAY.md).
 
 ## Documentation
 
 - [docs/INSTALL.md](docs/INSTALL.md): setup, requirements, and verify steps.
-- [docs/USAGE.md](docs/USAGE.md): commands, scripts, and how to play.
+- [docs/USAGE.md](docs/USAGE.md): commands, scripts, and how to run.
+- [docs/GAME_PLAY.md](docs/GAME_PLAY.md): full player-facing rules and a sample
+  turn.
 - [docs/CODE_ARCHITECTURE.md](docs/CODE_ARCHITECTURE.md): components and data
   flow.
 - [docs/FILE_STRUCTURE.md](docs/FILE_STRUCTURE.md): directory map and where to

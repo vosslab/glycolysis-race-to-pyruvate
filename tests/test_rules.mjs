@@ -77,5 +77,5 @@ test("illegal melds report the closest legal reaction", () => {
 
   assert.equal(result.ok, false);
   assert.match(result.message, /Closest legal meld is Hexokinase\./);
-  assert.match(result.issues.join(" "), /Missing cards: glucose_6_phosphate, adp\./);
+  assert.match(result.issues.join(" "), /Missing cards: Glucose-6-phosphate, ADP\./);
 });
